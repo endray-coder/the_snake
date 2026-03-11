@@ -100,12 +100,8 @@ void About(){
 }
 
 void InitMap(){
-    // 释放旧的食物数组
     if(food) delete[] food;
-    // 分配新的食物数组
     food=new Food[MAX_FOOD];
-    
-    // 初始化地图
     for(int i=0;i<MAP_HEIGHT;i++){
         for(int j=0;j<MAP_WIDTH;j++){
             if(i==0 || i==MAP_HEIGHT-1 || j==0 || j==MAP_WIDTH-1){
@@ -116,7 +112,6 @@ void InitMap(){
         }
     }
     
-    // 初始化蛇
     snake.length=3;
     snake.speed=200;
     for(int i=0;i<snake.length;i++){
@@ -124,8 +119,6 @@ void InitMap(){
         snake.snakeNode[i].y=MAP_HEIGHT/2;
         goprint(snake.snakeNode[i].x,snake.snakeNode[i].y,"*");
     }
-    
-    // 初始化多个食物
     for(int i=0;i<MAX_FOOD;i++){
         food[i].x=rand()%(MAP_WIDTH-2)+1;
         food[i].y=rand()%(MAP_HEIGHT-2)+1;
@@ -192,28 +185,23 @@ int MoveSnake(){
     
     now_dir=direction;
     
-    // 检查是否死亡
     if(!IsCorrect()){
         goprint(MAP_WIDTH/2-5,MAP_HEIGHT/2,"游戏结束！");
         _getch();
         system("cls");
         return 0;
     }
-    
-    // 移动身体
     for(int i=1;i<snake.length;i++){
         temp2=snake.snakeNode[i];
         snake.snakeNode[i]=temp;
         temp=temp2;
     }
-    
-    // 检查是否吃到食物
     bool ateFood = false;
     for(int i=0;i<MAX_FOOD;i++){
         if(snake.snakeNode[0].x==food[i].x && snake.snakeNode[0].y==food[i].y){
             snake.length++;
             snake.snakeNode[snake.length-1]=temp;
-            PrintFood(i); // 重新生成被吃掉的食物
+            PrintFood(i);
             SpeedControl();
             ateFood = true;
             break;
@@ -223,7 +211,6 @@ int MoveSnake(){
     if(!ateFood){
         goprint(temp.x,temp.y," ");
     }
-    
     // 绘制蛇
     goprint(snake.snakeNode[0].x,snake.snakeNode[0].y,"*");
     
