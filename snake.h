@@ -13,7 +13,7 @@ typedef struct{
     int x,y;
 }Food,Snakenode;
 
-#define MAX_FOOD 3 // 最大食物数量
+extern int MAX_FOOD; // 食物数量
 typedef struct{
     Snakenode snakeNode[1000];
     int length,speed;
@@ -24,8 +24,9 @@ void Hide();
 int Menu();
 void Help();
 void About();
+void Settings();
 void InitMap();
-void PrintFood();
+void PrintFood(int);
 int MoveSnake();
 int IsCorrect();
 void SpeedControl();

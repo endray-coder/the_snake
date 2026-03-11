@@ -6,7 +6,8 @@ void SetConsoleUTF8() {
     SetConsoleCP(CP_UTF8);
 }
 Snake snake;
-Food food[MAX_FOOD]; // 食物数组
+int MAX_FOOD=3; // 默认食物数量
+Food *food; // 食物数组指针
 char now_dir=RIGHT,direction=RIGHT;
 
 void GotoXY(int x,int y){
@@ -28,13 +29,46 @@ void goprint(int x,int y,string z){
     GotoXY(x,y);
     cout<<z;
 }
+void Settings(){
+    SetConsoleUTF8();
+    goprint(40,12,"设置");
+    goprint(35,14,"当前食物数量: " + to_string(MAX_FOOD));
+    goprint(35,16,"1. 设置食物数量 (1-5)");
+    goprint(35,18,"0. 返回");
+    Hide();
+    char ch;
+    int choice=0;
+    ch=_getch();
+    choice=ch-'0';
+    system("cls");
+    
+    if(choice==1){
+        goprint(40,12,"设置食物数量");
+        goprint(35,14,"请输入食物数量 (1-5):");
+        Hide();
+        char num_ch;
+        int num=0;
+        while(1){
+            num_ch=_getch();
+            if(num_ch>='1' && num_ch<='5'){
+                num=num_ch-'0';
+                break;
+            }
+        }
+        MAX_FOOD=num;
+        system("cls");
+        Settings();
+    }
+}
+
 int Menu(){
     SetConsoleUTF8();
     goprint(40,12,"欢迎");
     goprint(43,14,"1.开始");
     goprint(43,16,"2.帮助");
     goprint(43,18,"3.关于");
-    goprint(43,20,"0.退出");
+    goprint(43,20,"4.设置");
+    goprint(43,22,"0.退出");
     Hide();
     char ch;
     int result=0;
@@ -66,6 +100,11 @@ void About(){
 }
 
 void InitMap(){
+    // 释放旧的食物数组
+    if(food) delete[] food;
+    // 分配新的食物数组
+    food=new Food[MAX_FOOD];
+    
     // 初始化地图
     for(int i=0;i<MAP_HEIGHT;i++){
         for(int j=0;j<MAP_WIDTH;j++){

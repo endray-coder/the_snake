@@ -9,14 +9,13 @@ int main(){
             while(MoveSnake());
         }else if(result==2){
             Help();
-        }
-        else if(result==3){
+        }else if(result==3){
             About();
-        }
-        else if(result==0){
+        }else if(result==4){
+            Settings();
+        }else if(result==0){
             end=0;
         }
-
     }
     return 0;
 }
