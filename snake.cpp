@@ -6,9 +6,15 @@ void SetConsoleUTF8() {
     SetConsoleCP(CP_UTF8);
 }
 Snake snake;
-int MAX_FOOD=3; // 默认食物数量
-Food *food; // 食物数组指针
+int MAX_FOOD=3;
+char SNAKE_SKIN='*';
+int MAX_OBSTACLES_COUNT=5; // 默认障碍物数量
+Food *food;
 char now_dir=RIGHT,direction=RIGHT;
+ScoreRecord leaderboard[10];
+int leaderboardCount=0;
+Obstacle obstacles[MAX_OBSTACLES];
+int obstacleCount=0;
 
 void GotoXY(int x,int y){
     HANDLE hout;
@@ -29,12 +35,50 @@ void goprint(int x,int y,string z){
     GotoXY(x,y);
     cout<<z;
 }
+void ShowLeaderboard(){
+    SetConsoleUTF8();
+    goprint(40,12,"积分排行榜");
+    if(leaderboardCount==0){
+        goprint(35,14,"暂无记录");
+    }else{
+        for(int i=0;i<leaderboardCount;i++){
+            goprint(35,14+i,"第" + to_string(i+1) + "名: " + to_string(leaderboard[i].score) + "分");
+        }
+    }
+    goprint(35,24,"按任意键返回");
+    Hide();
+    _getch();
+    system("cls");
+}
+
+void AddScore(int score){
+    if(leaderboardCount<10){
+        leaderboard[leaderboardCount].score=score;
+        leaderboardCount++;
+    }else if(score>leaderboard[9].score){
+        leaderboard[9].score=score;
+    }
+    for(int i=0;i<leaderboardCount-1;i++){
+        for(int j=i+1;j<leaderboardCount;j++){
+            if(leaderboard[i].score<leaderboard[j].score){
+                ScoreRecord temp=leaderboard[i];
+                leaderboard[i]=leaderboard[j];
+                leaderboard[j]=temp;
+            }
+        }
+    }
+}
+
 void Settings(){
     SetConsoleUTF8();
     goprint(40,12,"设置");
     goprint(35,14,"当前食物数量: " + to_string(MAX_FOOD));
-    goprint(35,16,"1. 设置食物数量 (1-5)");
-    goprint(35,18,"0. 返回");
+    goprint(35,16,"当前蛇皮肤: " + string(1, SNAKE_SKIN));
+    goprint(35,18,"当前障碍物数量: " + to_string(MAX_OBSTACLES_COUNT));
+    goprint(35,20,"1. 设置食物数量 (1-5)");
+    goprint(35,22,"2. 自定义蛇皮肤");
+    goprint(35,24,"3. 设置障碍物数量 (0-10)");
+    goprint(35,26,"0. 返回");
     Hide();
     char ch;
     int choice=0;
@@ -58,6 +102,31 @@ void Settings(){
         MAX_FOOD=num;
         system("cls");
         Settings();
+    }else if(choice==2){
+        goprint(40,12,"自定义蛇皮肤");
+        goprint(35,14,"请输入一个字符作为蛇的皮肤:");
+        Hide();
+        char skin_ch;
+        skin_ch=_getch();
+        SNAKE_SKIN=skin_ch;
+        system("cls");
+        Settings();
+    }else if(choice==3){
+        goprint(40,12,"设置障碍物数量");
+        goprint(35,14,"请输入障碍物数量 (0-10):");
+        Hide();
+        char num_ch;
+        int num=0;
+        while(1){
+            num_ch=_getch();
+            if(num_ch>='0' && num_ch<='9'){
+                num=num_ch-'0';
+                break;
+            }
+        }
+        MAX_OBSTACLES_COUNT=num;
+        system("cls");
+        Settings();
     }
 }
 
@@ -68,7 +137,8 @@ int Menu(){
     goprint(43,16,"2.帮助");
     goprint(43,18,"3.关于");
     goprint(43,20,"4.设置");
-    goprint(43,22,"0.退出");
+    goprint(43,22,"5.积分排行榜");
+    goprint(43,24,"0.退出");
     Hide();
     char ch;
     int result=0;
@@ -99,6 +169,26 @@ void About(){
     system("cls");
 }
 
+int IsValidPosition(int x, int y) {
+    for(int i=0; i<snake.length; i++) {
+        if(snake.snakeNode[i].x == x && snake.snakeNode[i].y == y) {
+            return 0;
+        }
+    }
+    
+    for(int i=0; i<obstacleCount; i++) {
+        if(obstacles[i].x == x && obstacles[i].y == y) {
+            return 0;
+        }
+    }
+    
+    if(x <= 0 || x >= MAP_WIDTH-1 || y <= 0 || y >= MAP_HEIGHT-1) {
+        return 0;
+    }
+    
+    return 1;
+}
+
 void InitMap(){
     if(food) delete[] food;
     food=new Food[MAX_FOOD];
@@ -119,18 +209,45 @@ void InitMap(){
         snake.snakeNode[i].y=MAP_HEIGHT/2;
         goprint(snake.snakeNode[i].x,snake.snakeNode[i].y,"*");
     }
+    
+    obstacleCount=0;
+    for(int i=0;i<MAX_OBSTACLES_COUNT;i++){
+        int x,y;
+        do {
+            x=rand()%(MAP_WIDTH-2)+1;
+            y=rand()%(MAP_HEIGHT-2)+1;
+        } while(!IsValidPosition(x,y));
+        
+        obstacles[obstacleCount].x=x;
+        obstacles[obstacleCount].y=y;
+        goprint(x,y,"#");
+        obstacleCount++;
+    }
+    
     for(int i=0;i<MAX_FOOD;i++){
-        food[i].x=rand()%(MAP_WIDTH-2)+1;
-        food[i].y=rand()%(MAP_HEIGHT-2)+1;
-        goprint(food[i].x,food[i].y,"@");
+        int x,y;
+        do {
+            x=rand()%(MAP_WIDTH-2)+1;
+            y=rand()%(MAP_HEIGHT-2)+1;
+        } while(!IsValidPosition(x,y));
+        
+        food[i].x=x;
+        food[i].y=y;
+        goprint(x,y,"@");
     }
 }
 
 void PrintFood(int index){
     // 生成新的食物位置
-    food[index].x=rand()%(MAP_WIDTH-2)+1;
-    food[index].y=rand()%(MAP_HEIGHT-2)+1;
-    goprint(food[index].x,food[index].y,"@");
+    int x,y;
+    do {
+        x=rand()%(MAP_WIDTH-2)+1;
+        y=rand()%(MAP_HEIGHT-2)+1;
+    } while(!IsValidPosition(x,y));
+    
+    food[index].x=x;
+    food[index].y=y;
+    goprint(x,y,"@");
 }
 
 int IsCorrect(){
@@ -144,6 +261,14 @@ int IsCorrect(){
     for(int i=1;i<snake.length;i++){
         if(snake.snakeNode[0].x==snake.snakeNode[i].x && 
            snake.snakeNode[0].y==snake.snakeNode[i].y){
+            return 0;
+        }
+    }
+    
+    // 检查是否撞到障碍物
+    for(int i=0;i<obstacleCount;i++){
+        if(snake.snakeNode[0].x==obstacles[i].x && 
+           snake.snakeNode[0].y==obstacles[i].y){
             return 0;
         }
     }
@@ -167,6 +292,7 @@ void SpeedControl(){
     }
 }
 
+
 int MoveSnake(){
     SetConsoleUTF8();
     if(_kbhit()){
@@ -186,7 +312,9 @@ int MoveSnake(){
     now_dir=direction;
     
     if(!IsCorrect()){
-        goprint(MAP_WIDTH/2-5,MAP_HEIGHT/2,"游戏结束！");
+        int score=snake.length-3;
+        AddScore(score);
+        goprint(MAP_WIDTH/2-8,MAP_HEIGHT/2,"游戏结束！得分: " + to_string(score));
         _getch();
         system("cls");
         return 0;

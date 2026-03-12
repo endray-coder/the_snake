@@ -13,6 +13,8 @@ int main(){
             About();
         }else if(result==4){
             Settings();
+        }else if(result==5){
+            ShowLeaderboard();
         }else if(result==0){
             end=0;
         }
