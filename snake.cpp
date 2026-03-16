@@ -207,7 +207,7 @@ void InitMap(){
     for(int i=0;i<snake.length;i++){
         snake.snakeNode[i].x=MAP_WIDTH/2-i;
         snake.snakeNode[i].y=MAP_HEIGHT/2;
-        goprint(snake.snakeNode[i].x,snake.snakeNode[i].y,"*");
+        goprint(snake.snakeNode[i].x,snake.snakeNode[i].y,string(1, SNAKE_SKIN));
     }
     
     obstacleCount=0;
@@ -340,7 +340,7 @@ int MoveSnake(){
         goprint(temp.x,temp.y," ");
     }
     // 绘制蛇
-    goprint(snake.snakeNode[0].x,snake.snakeNode[0].y,"*");
+    goprint(snake.snakeNode[0].x,snake.snakeNode[0].y,string(1, SNAKE_SKIN));
     
     // 控制速度
     Sleep(snake.speed);
